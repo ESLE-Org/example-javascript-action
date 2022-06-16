@@ -64,7 +64,7 @@ async function run() {
       owner: github.context.payload.repository.owner.login
     })
 
-    console.dir(result)
+    console.log(JSON.stringify(result))
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
