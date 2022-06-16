@@ -8919,6 +8919,7 @@ async function run() {
 
     const octokit = github.getOctokit(myToken)
 
+    console.log(JSON.stringify(github.context.payload))
     console.log("repos", github.context.payload.repository.name)
     console.dir("owner", github.context.payload.repository)
     // last pr check result
