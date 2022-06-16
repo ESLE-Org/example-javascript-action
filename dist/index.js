@@ -8864,7 +8864,7 @@ const core = __nccwpck_require__(4181)
 const github = __nccwpck_require__(5163);
 
 
-const getLastPRStatus = `query($owner:String!, $repo:String!){
+const getLastPRStatus = (/* unused pure expression or super */ null && (`query($owner:String!, $repo:String!){
   repository(owner: $owner, name: $repo) {
     owner {
       id
@@ -8910,7 +8910,7 @@ const getLastPRStatus = `query($owner:String!, $repo:String!){
       }
     }
   }
-}`
+}`))
 
 async function run() {
   try {
@@ -8918,21 +8918,21 @@ async function run() {
     const myToken = core.getInput("githubToken")
 
     const octokit = github.getOctokit(myToken)
+
     console.log("repos", github.context.payload.repository.name)
     console.log("owner", github.context.payload.repository.owner.name)
     // last pr check result
-    const result = await octokit.graphql({
-      query: getLastPRStatus,
-      repo: github.context.payload.repository.name,
-      owner: github.context.payload.repository.owner.name
-    })
+    // const result = await octokit.graphql({
+    //   query: getLastPRStatus,
+    //   repo: github.context.payload.repository.name,
+    //   owner: github.context.payload.repository.owner.name
+    // })
 
     console.log(result)
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
-    // Get the JSON webhook payload for the event that triggered the workflow
-    //const payload = JSON.stringify(github.context.payload, undefined, 2)
+
     // console.log(`The event payload: ${payload}`);
   } catch (error) {
     core.setFailed(error.message);
