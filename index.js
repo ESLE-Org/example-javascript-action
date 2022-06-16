@@ -2,44 +2,43 @@ const core = require("@actions/core")
 const github = require("@actions/github");
 
 
-const getLastPRStatus = `query($owner:String!, $repo:String!{
-    repository(owner: $owner, name: $repo) {
-      owner {
-        id
-      }
-      primaryLanguage {
-        name
-      }
-      description
-      updatedAt
-      languages(first: 100) {
-        totalSize
-        edges {
-          size
-          node {
-            name
-            color
-            id
-          }
+const getLastPRStatus = `query($owner:String!, $repo:String!){
+  repository(owner: $owner, name: $repo) {
+    owner {
+      id
+    }
+    primaryLanguage {
+      name
+    }
+    description
+    updatedAt
+    languages(first: 100) {
+      totalSize
+      edges {
+        size
+        node {
+          name
+          color
+          id
         }
       }
-      pullRequests(last: 1, states: OPEN) {
-        edges {
-          node {
-            number
-            url
-            commits(last: 1) {
-              nodes {
-                commit {
-                  commitUrl
-                  oid
-                  status {
-                    contexts {
-                      context
-                      state
-                      targetUrl
-                      description
-                    }
+    }
+    pullRequests(last: 1, states: OPEN) {
+      edges {
+        node {
+          number
+          url
+          commits(last: 1) {
+            nodes {
+              commit {
+                commitUrl
+                oid
+                status {
+                  contexts {
+                    context
+                    state
+                    targetUrl
+                    description
                   }
                 }
               }
@@ -48,7 +47,8 @@ const getLastPRStatus = `query($owner:String!, $repo:String!{
         }
       }
     }
-  }`
+  }
+}`
 
 async function run() {
   try {
