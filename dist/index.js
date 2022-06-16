@@ -8864,7 +8864,7 @@ const core = __nccwpck_require__(4181)
 const github = __nccwpck_require__(5163);
 
 
-const getLastPRStatus = (/* unused pure expression or super */ null && (`query($owner:String!, $repo:String!){
+const getLastPRStatus = `query($owner:String!, $repo:String!){
   repository(owner: $owner, name: $repo) {
     owner {
       id
@@ -8910,7 +8910,7 @@ const getLastPRStatus = (/* unused pure expression or super */ null && (`query($
       }
     }
   }
-}`))
+}`
 
 async function run() {
   try {
@@ -8919,15 +8919,14 @@ async function run() {
 
     const octokit = github.getOctokit(myToken)
 
-    console.log(JSON.stringify(github.context.payload))
     console.log("repos", github.context.payload.repository.name)
-    console.dir("owner", github.context.payload.repository)
+    console.dir("owner", github.context.payload.repository.owner.login)
     // last pr check result
-    // const result = await octokit.graphql({
-    //   query: getLastPRStatus,
-    //   repo: github.context.payload.repository.name,
-    //   owner: github.context.payload.repository.owner.name
-    // })
+    const result = await octokit.graphql({
+      query: getLastPRStatus,
+      repo: github.context.payload.repository.name,
+      owner: github.context.payload.repository.owner.login
+    })
 
     // console.log(result)
 
