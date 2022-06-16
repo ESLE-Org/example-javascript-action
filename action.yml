@@ -1,12 +1,11 @@
 name: "Example JavaScript github action"
-description: "Greet someone and record the time"
+description: "Write workflow status to database"
 permissions:
   contents: read
 inputs:
-  who-to-greet: # id of input
-    description: "Who to greet"
+  githubToken: # Github Token 
+    description: "Github token"
     required: true
-    default: "World"
 outputs:
   time: # id of output
     description: "The time we greeted you"
