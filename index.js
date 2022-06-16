@@ -58,7 +58,7 @@ async function run() {
     const octokit = github.getOctokit(myToken)
 
     console.log("repos", github.context.payload.repository.name)
-    console.log("owner", github.context.payload.repository.owner.name)
+    console.log("owner", github.context.payload.repository)
     // last pr check result
     // const result = await octokit.graphql({
     //   query: getLastPRStatus,
@@ -66,7 +66,7 @@ async function run() {
     //   owner: github.context.payload.repository.owner.name
     // })
 
-    console.log(result)
+    // console.log(result)
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
