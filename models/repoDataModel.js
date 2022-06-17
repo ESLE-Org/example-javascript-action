@@ -12,7 +12,7 @@ const repoDataModel = (graphql_result) => {
 
         const blob = {
             description: graphql_result.description,
-            dbUpdatedAt: "",
+            dbUpdatedAt: (new Date()).toISOString(),
             languages: [],
             monitorStatus: 0,
             orgId: graphql_result.owner.id,
