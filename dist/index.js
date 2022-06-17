@@ -26131,7 +26131,7 @@ async function run() {
     // Valid result that has repository data
     if (result.hasOwnProperty("repository")) {
       // Update pr details in database
-      await repositoriesProcess(repoDataModel(result))
+      await repositoriesProcess(repoDataModel(result.repository))
     }
 
     const time = (new Date()).toTimeString();
