@@ -1,9 +1,15 @@
 const core = require("@actions/core")
 const github = require("@actions/github");
 
+const { repoDataModel } = require("./models/repoDataModel")
+const { repositoriesProcess } = require("./database/db")
+
 
 const getLastPRStatus = `query($owner:String!, $repo:String!){
   repository(owner: $owner, name: $repo) {
+    name
+    url
+    id
     owner {
       id
     }
@@ -64,7 +70,7 @@ async function run() {
       owner: github.context.payload.repository.owner.login
     })
 
-    console.log(JSON.stringify(result))
+    await repositoriesProcess(repoDataModel(result))
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
