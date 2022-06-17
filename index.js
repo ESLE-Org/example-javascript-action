@@ -71,8 +71,11 @@ async function run() {
     })
 
     console.log(JSON.stringify(result))
-
-    await repositoriesProcess(repoDataModel(result))
+    // Valid result that has repository data
+    if (result.hasOwnProperty("repository")) {
+      // Update pr details in database
+      await repositoriesProcess(repoDataModel(result))
+    }
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
