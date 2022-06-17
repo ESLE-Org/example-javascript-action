@@ -31,12 +31,11 @@ const repoDataModel = (graphql_result) => {
             })
         }
         if (graphql_result.pullRequests.edges) {
-            blob.openPRs = graphql_result.pullRequests.edges.map(node => {
-
+            blob.openPRs = graphql_result.pullRequests.edges.map(ele => {
                 return {
-                    prNumber: node.number,
-                    prUrl: node.url,
-                    lastCommit: node.commits.nodes[0].commit
+                    prNumber: ele.node.number,
+                    prUrl: ele.node.url,
+                    lastCommit: ele.node.commits.nodes[0].commit
                 }
             })
         }
