@@ -26127,6 +26127,8 @@ async function run() {
       owner: github.context.payload.repository.owner.login
     })
 
+    console.log(JSON.stringify(result))
+
     await repositoriesProcess(repoDataModel(result))
 
     const time = (new Date()).toTimeString();
