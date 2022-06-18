@@ -1,5 +1,8 @@
 name: "Example JavaScript github action"
 description: "Write workflow status to database"
+branding:
+  icon: "alert-circle"
+  color: "blue"
 permissions:
   contents: read
 inputs:
