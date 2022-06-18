@@ -26,12 +26,11 @@ const CosmosClient = (__nccwpck_require__(9933)/* .CosmosClient */ .Pi);
 const config = __nccwpck_require__(2039)
 const dbContext = __nccwpck_require__(4186)
 
+const { endpoint, key, databaseId } = config;
 
-async function itemManager(containerId, newData) {
+const client = new CosmosClient({ endpoint, key });
 
-    const { endpoint, key, databaseId } = config;
-
-    const client = new CosmosClient({ endpoint, key });
+async function itemManager(containerId) {
 
     const database = client.database(databaseId);
     const container = database.container(containerId);
@@ -39,59 +38,129 @@ async function itemManager(containerId, newData) {
     // Make sure Tasks database is already setup. If not, create it.
     await dbContext.create(client, databaseId, containerId);
 
-    try {
-
-        // query to return all items
-        const querySpec = {
-            query: "SELECT * from c"
-        };
-
-        // read all items in the Items container
-        const { resources: allItems } = await container.items
-            .query(querySpec)
-            .fetchAll();
-
-        // check whether item exists
-        const itemExists = allItems.some(item => ((item.id == newData.id) && (item.orgId == newData.orgId)));
-
-        // if item does not exist, create an item
-        if (!itemExists) {
-            await container.items.create(newData)
-        }
-        // if item exists, update the item data
-        else {
-            await container.item(newData.id, newData.orgId).replace(newData);
-        }
-
-
-    } catch (err) {
-
-        core.setFailed(err.message);
-    }
+    return container
 
 }
 
 async function basicRepoDetailsProcess(basicRepoDetailsData) {
-    itemManager("BasicRepoDetails", basicRepoDetailsData);
+    try {
+        // Get container
+        const container = await itemManager("BasicRepoDetails")
+        // Check item exists in container
+        const { resource } = await container.item(basicRepoDetailsData.id, basicRepoDetailsData.orgId).read()
+        if (resource) {
+            // Item exists
+            basicRepoDetailsData.tag = resource.tag
+            basicRepoDetailsData.repoWatchStatus = resource.repoWatchStatus
+            await container.item(basicRepoDetailsData.id, basicRepoDetailsData.orgId).replace(basicRepoDetailsData)
+        }
+        else {
+            // Item not exists
+            basicRepoDetailsData.tag = "Not Specified"
+            basicRepoDetailsData.repoWatchStatus = 0
+            await container.items.create(basicRepoDetailsData)
+        }
+
+        return true
+
+
+
+    }
+    catch (error) {
+        core.setFailed("basicRepoDetailsProcess :: " + error.message)
+    }
+
+
 }
 
 async function languagesProcess(languagesData) {
-    itemManager("Languages", languagesData);
+    try {
+        const container = await itemManager("Languages")
+        const orgId = languagesData[0].orgId
+        // query to return all items
+        const querySpec = {
+            query: "SELECT * FROM Languages l WHERE  l.orgId = @orgId",
+            parameters: [
+                {
+                    name: "@orgId",
+                    value: orgId
+                }
+            ]
+        };
+
+        // read all items in the Items container
+        const { resources: results } = await container.items
+            .query(querySpec)
+            .fetchAll();
+        // No language found for organization
+
+        if (results.length === 0) {
+
+            const operations = languagesData.map(n => {
+                n.testingTools = []
+                return {
+                    operationType: "Create",
+
+                    resourceBody: n
+                }
+            })
+            if (operations.length !== 0) {
+                await container.items.batch(operations, orgId)
+
+            }
+        }
+        else {
+            // Langugaes exists
+            // Get non-existing items
+            const new_languagesData = languagesData.filter(new_obj => {
+                return !results.some(ex_obj => {
+                    return new_obj.id === ex_obj.id
+                })
+            })
+            const operations = new_languagesData.map(n => {
+                n.testingTools = []
+                return {
+                    operationType: "Create",
+                    resourceBody: n
+                }
+            })
+            if (operations.length !== 0) {
+                await container.items.batch(operations, orgId)
+
+            }
+
+        }
+
+    }
+    catch (error) {
+        core.setFailed("langugaeProcess :: " + error.message)
+    }
 }
 
 async function repositoriesProcess(repositoriesData) {
-    itemManager("Repositories", repositoriesData);
+    try {
+        const container = await itemManager("Repositories")
+        const { resource } = await container.item(repositoriesData.id, repositoriesData.orgId).read()
+        if (resource) {
+            // Update neccessary fields
+            await container.item(repositoriesData.id, repositoriesData.orgId).replace(repositoriesData)
+
+        }
+        else {
+            // Create new item
+            await container.items.create(repositoriesData)
+        }
+    }
+    catch (error) {
+        core.setFailed("repositoriesProcess :: " + error.message)
+    }
 }
 
-async function tagsProcess(tagsData) {
-    itemManager("Tags", tagsData);
-}
 
 module.exports = {
     basicRepoDetailsProcess,
     languagesProcess,
     repositoriesProcess,
-    tagsProcess
 }
 
 /***/ }),
@@ -130,6 +199,93 @@ module.exports = { create };
 
 /***/ }),
 
+/***/ 2916:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(4181)
+
+const basicRepoDetailsModel = (repository) => {
+
+    return {
+        createdAt: repository.created_at,
+        monitorStatus: 1,
+        orgId: repository.owner.node_id,
+        repoName: repository.name,
+        id: repository.node_id,
+    }
+
+}
+
+module.exports = {
+    basicRepoDetailsModel
+}
+
+/***/ }),
+
+/***/ 3855:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(4181)
+
+const languageDataModel = (graphql_result) => {
+    try {
+
+        const orgId = graphql_result.owner.id
+        if (graphql_result.languages.nodes) {
+            return graphql_result.languages.nodes.map(ele => {
+                return {
+                    name: ele.name,
+                    id: ele.id,
+                    orgId: orgId
+                }
+            })
+        }
+
+    }
+    catch (error) {
+        core.setFailed(error.message)
+    }
+}
+
+module.exports = {
+    languageDataModel
+}
+
+/***/ }),
+
+/***/ 6373:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(4181)
+
+const prDataModel = (graphql_result) => {
+    try {
+
+        if (graphql_result.pullRequests.edges) {
+            return graphql_result.pullRequests.edges.map(ele => {
+                return {
+                    prNumber: ele.node.number,
+                    prUrl: ele.node.url,
+                    lastCommit: ele.node.commits.nodes[0].commit
+                }
+            })
+        }
+        else {
+            return []
+        }
+    }
+    catch (error) {
+        core.setFailed(error)
+    }
+}
+
+
+module.exports = {
+    prDataModel
+}
+
+/***/ }),
+
 /***/ 1007:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -141,15 +297,15 @@ const core = __nccwpck_require__(4181)
  * @param {Object} graphql_result graphql result from getLastPRStatus
  * @returns {Object} mapped repo data
  */
-const repoDataModel = (graphql_result) => {
+const repoDataModel = (graphql_result, open_prs = []) => {
 
     try {
 
         const blob = {
             description: graphql_result.description,
             dbUpdatedAt: (new Date()).toISOString(),
+            monitorStatus: 1,
             languages: [],
-            monitorStatus: 0,
             orgId: graphql_result.owner.id,
             repoName: graphql_result.name,
             repoUrl: graphql_result.url,
@@ -173,6 +329,9 @@ const repoDataModel = (graphql_result) => {
                     lastCommit: ele.node.commits.nodes[0].commit
                 }
             })
+        }
+        if (open_prs.length !== 0) {
+            blob.openPRs = blob.openPRs.concat(open_prs)
         }
 
 
@@ -25853,6 +26012,245 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 5894:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(4181)
+
+const languagesQuery = `query ($owner:String!, $repo:String!){
+    repository(owner:$owner,name:$repo){
+        owner {
+            id
+        }
+        languages(first:100){
+          pageInfo{
+            hasNextPage,
+            endCursor
+          }
+          nodes{
+            name
+            id
+          }
+        }
+      }
+}`
+
+async function getLanguages(octokit, owner, repo) {
+    try {
+        return await octokit.graphql({
+            query: languagesQuery,
+            owner: owner,
+            repo: repo
+        })
+            .then(result => {
+
+                return result.repository
+            })
+            .catch(e => {
+                throw e
+            })
+    }
+    catch (error) {
+        core.setFailed(error.message)
+    }
+}
+
+const iterativeLanguageQuery = `query ($owner:String!, $repo:String!, $after:String!){
+    repository(owner:$owner,name:$repo){
+        owner {
+            id
+        }
+        languages(first:100, after:$after){
+          pageInfo{
+            hasNextPage,
+            endCursor
+          }
+          nodes{
+            name
+            id
+          }
+        }
+      }
+}`
+
+async function getNextLanguages(octokit, owner, repo, after) {
+    try {
+        return await octokit.graphql({
+            query: iterativeLanguageQuery,
+            owner: owner,
+            repo: repo,
+            after: after
+        })
+            .then(result => {
+
+                return result.repository
+            })
+            .catch(e => {
+                throw e
+            })
+
+    } catch (error) {
+        core.setFailed(error.message)
+    }
+}
+
+module.exports = {
+    getLanguages,
+    getNextLanguages
+}
+
+/***/ }),
+
+/***/ 339:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(4181)
+const github = __nccwpck_require__(5163);
+
+
+
+// get pr status
+const getRepoDetailsQuery = `query($owner:String!, $repo:String!){
+    repository(owner: $owner, name: $repo) {
+      name
+      url
+      id
+      owner {
+        id
+      }
+      primaryLanguage {
+        name
+      }
+      description
+      updatedAt
+      languages(first: 100) {
+        totalSize
+        edges {
+          size
+          node {
+            name
+            color
+            id
+          }
+        }
+      }
+      pullRequests(first:100, states: OPEN) {
+        pageInfo{
+            endCursor
+            hasNextPage
+        }
+        edges {
+          node {
+            number
+            url
+            commits(last: 1) {
+              nodes {
+                commit {
+                  commitUrl
+                  oid
+                  status {
+                    contexts {
+                      context
+                      state
+                      targetUrl
+                      description
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }`
+
+
+const getOpenPRStatusQuery = `query($owner: String!, $repo: String!, $after: String!){
+    repository(owner: $owner, name: $repo) {
+        pullRequests(first: 100, states: OPEN, after: $after){
+            pageInfo {
+                endCursor
+                hasNextPage
+            }
+            edges {
+                node {
+                    number
+                    url
+                    commits(last: 1) {
+                    nodes {
+                      commit {
+                                commitUrl
+                                oid
+                        status {
+                          contexts {
+                                        context
+                                        state
+                                        targetUrl
+                                        description
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+    
+}`
+
+async function getRepoDetails(octokit, owner, repo) {
+    try {
+        return await octokit.graphql({
+            query: getRepoDetailsQuery,
+            repo: repo,
+            owner: owner
+        })
+            .then(result => {
+
+                return result.repository
+            })
+            .catch(e => {
+                throw e
+            })
+    }
+    catch (error) {
+        core.setFailed(error.message)
+    }
+
+}
+
+async function getOpenPRs(octokit, owner, repo, after) {
+    try {
+        return await octokit.graphql({
+            query: getOpenPRStatusQuery,
+            owner: owner,
+            repo: repo,
+            after: after
+        })
+            .then(result => {
+
+                return result.repository
+            })
+            .catch(e => {
+                throw e
+            })
+
+    } catch (error) {
+        core.setFailed(error.message)
+    }
+}
+
+
+module.exports = {
+    getRepoDetails,
+    getOpenPRs
+}
+
+/***/ }),
+
 /***/ 9151:
 /***/ ((module) => {
 
@@ -26058,80 +26456,111 @@ const core = __nccwpck_require__(4181)
 const github = __nccwpck_require__(5163);
 
 const { repoDataModel } = __nccwpck_require__(1007)
-const { repositoriesProcess } = __nccwpck_require__(7054)
+const { prDataModel } = __nccwpck_require__(6373)
+const { languageDataModel } = __nccwpck_require__(3855)
+const { basicRepoDetailsModel } = __nccwpck_require__(2916)
+
+const { repositoriesProcess,
+  languagesProcess,
+  basicRepoDetailsProcess } = __nccwpck_require__(7054)
+
+const { getRepoDetails, getOpenPRs } = __nccwpck_require__(339)
+const { getLanguages, getNextLanguages } = __nccwpck_require__(5894)
 
 
-const getLastPRStatus = `query($owner:String!, $repo:String!){
-  repository(owner: $owner, name: $repo) {
-    name
-    url
-    id
-    owner {
-      id
+async function iterativeOpenPRCollect(octokit, owner, repo, after, hasNextPage = false) {
+  try {
+
+    let open_prs = []
+    let temp_result
+
+    while (hasNextPage) {
+      temp_result = await getOpenPRs(octokit,
+        owner,
+        repo,
+        after
+      )
+      open_prs = open_prs.concat(prDataModel(temp_result))
+      hasNextPage = temp_result.pullRequests.pageInfo.hasNextPage
+      after = temp_result.pullRequests.pageInfo.endCursor
     }
-    primaryLanguage {
-      name
-    }
-    description
-    updatedAt
-    languages(first: 100) {
-      totalSize
-      edges {
-        size
-        node {
-          name
-          color
-          id
-        }
-      }
-    }
-    pullRequests(last: 1, states: OPEN) {
-      edges {
-        node {
-          number
-          url
-          commits(last: 1) {
-            nodes {
-              commit {
-                commitUrl
-                oid
-                status {
-                  contexts {
-                    context
-                    state
-                    targetUrl
-                    description
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    return open_prs
+
   }
-}`
+  catch (error) {
+    core.setFailed(error.message)
+  }
+}
+
+
+async function iterativeLanguagesCollect(octokit, owner, repo, after, hasNextPage = false) {
+  try {
+
+    let languages = []
+    let temp_result
+
+    while (hasNextPage) {
+      temp_result = await getNextLanguages(octokit,
+        owner,
+        repo,
+        after
+      )
+      languages = languages.concat(languageDataModel(temp_result))
+      hasNextPage = temp_result.languages.pageInfo.hasNextPage
+      after = temp_result.languages.pageInfo.endCursor
+    }
+    return languages
+
+  }
+  catch (error) {
+    core.setFailed(error.message)
+  }
+}
 
 async function run() {
   try {
 
     const myToken = core.getInput("githubToken")
-
     const octokit = github.getOctokit(myToken)
 
-    // last pr check result
-    const result = await octokit.graphql({
-      query: getLastPRStatus,
-      repo: github.context.payload.repository.name,
-      owner: github.context.payload.repository.owner.login
-    })
+    const owner = github.context.payload.repository.owner.login
+    const repo = github.context.payload.repository.name
 
-    console.log(JSON.stringify(result))
-    // Valid result that has repository data
-    if (result.hasOwnProperty("repository")) {
-      // Update pr details in database
-      await repositoriesProcess(repoDataModel(result.repository))
+    // Update basic Repository Details
+    await basicRepoDetailsProcess(basicRepoDetailsModel(github.context.payload.repository))
+
+    // Update languages
+    let languages_details = await getLanguages(octokit, owner, repo)
+
+    let languages = []
+    // More than 100 languages query them all
+    if (languages_details.languages.pageInfo.hasNextPage) {
+      languages = await iterativeLanguagesCollect(
+        octokit,
+        owner,
+        repo,
+        languages_details.languages.pageInfo.endCursor,
+        true)
     }
+    // Concat all language data
+    languages = languageDataModel(languages_details).concat(languages)
+    // Update database
+    await languagesProcess(languages)
+    // Last pr check result
+    const repo_details = await getRepoDetails(octokit, owner, repo)
+    // More than 100 Open PRs available query them all
+    let open_prs = []
+    if (repo_details.pullRequests.pageInfo.hasNextPage) {
+      open_prs = await iterativeOpenPRCollect(
+        octokit,
+        owner,
+        repo,
+        repo_details.pullRequests.pageInfo.endCursor,
+        true
+      )
+    }
+    // Update pr details in database
+    await repositoriesProcess(repoDataModel(repo_details, open_prs))
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);

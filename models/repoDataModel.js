@@ -6,15 +6,15 @@ const core = require("@actions/core")
  * @param {Object} graphql_result graphql result from getLastPRStatus
  * @returns {Object} mapped repo data
  */
-const repoDataModel = (graphql_result) => {
+const repoDataModel = (graphql_result, open_prs = []) => {
 
     try {
 
         const blob = {
             description: graphql_result.description,
             dbUpdatedAt: (new Date()).toISOString(),
+            monitorStatus: 1,
             languages: [],
-            monitorStatus: 0,
             orgId: graphql_result.owner.id,
             repoName: graphql_result.name,
             repoUrl: graphql_result.url,
@@ -38,6 +38,9 @@ const repoDataModel = (graphql_result) => {
                     lastCommit: ele.node.commits.nodes[0].commit
                 }
             })
+        }
+        if (open_prs.length !== 0) {
+            blob.openPRs = blob.openPRs.concat(open_prs)
         }
 
 

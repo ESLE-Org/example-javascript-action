@@ -101,3 +101,10 @@ typings/
 
 # TernJS port file
 .tern-port
+
+
+# Ignore for test 
+.github
+.test
+.secrets
+.payload.json

@@ -1,12 +1,20 @@
 # Example javascript action
 
-This action prints "Hello World" or "Hello" + the name of a person to greet to the log.
+This action update CosmosDB with latest repo details.
 
 ## Inputs
 
-## `who-to-greet`
+## `githubToken`
 
-**Required** The name of the person to greet. Default `"World"`.
+**Required** Github Token provide by workflow `${{secrets.GITHUB_TOKEN}}.
+
+## `db_endpoint`
+
+**Required** CosmosDb endpoint url
+
+## `db_key`
+
+**Required** CosmosDB key
 
 ## Outputs
 
@@ -16,6 +24,8 @@ The time we greeted you.
 
 ## Example usage
 
-uses: actions/example-javascript-action@v0.1
+uses: actions/example-javascript-action@v0.5
 with:
-  who-to-greet: 'Mona the Octocat'
+  githubToken: ${{secrets.GITHUB_TOKEN}}
+  db_endpoint: ${{secrets.DB_ENDPOINT}}
+  db_key: ${{sectets.DB_KEY}}

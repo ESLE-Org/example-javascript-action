@@ -2,80 +2,111 @@ const core = require("@actions/core")
 const github = require("@actions/github");
 
 const { repoDataModel } = require("./models/repoDataModel")
-const { repositoriesProcess } = require("./database/db")
+const { prDataModel } = require("./models/prDataModel")
+const { languageDataModel } = require("./models/languageDataModel")
+const { basicRepoDetailsModel } = require("./models/basicRepoDetailsModel")
+
+const { repositoriesProcess,
+  languagesProcess,
+  basicRepoDetailsProcess } = require("./database/db")
+
+const { getRepoDetails, getOpenPRs } = require("./query/prStatus")
+const { getLanguages, getNextLanguages } = require("./query/langauges")
 
 
-const getLastPRStatus = `query($owner:String!, $repo:String!){
-  repository(owner: $owner, name: $repo) {
-    name
-    url
-    id
-    owner {
-      id
+async function iterativeOpenPRCollect(octokit, owner, repo, after, hasNextPage = false) {
+  try {
+
+    let open_prs = []
+    let temp_result
+
+    while (hasNextPage) {
+      temp_result = await getOpenPRs(octokit,
+        owner,
+        repo,
+        after
+      )
+      open_prs = open_prs.concat(prDataModel(temp_result))
+      hasNextPage = temp_result.pullRequests.pageInfo.hasNextPage
+      after = temp_result.pullRequests.pageInfo.endCursor
     }
-    primaryLanguage {
-      name
-    }
-    description
-    updatedAt
-    languages(first: 100) {
-      totalSize
-      edges {
-        size
-        node {
-          name
-          color
-          id
-        }
-      }
-    }
-    pullRequests(last: 1, states: OPEN) {
-      edges {
-        node {
-          number
-          url
-          commits(last: 1) {
-            nodes {
-              commit {
-                commitUrl
-                oid
-                status {
-                  contexts {
-                    context
-                    state
-                    targetUrl
-                    description
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    return open_prs
+
   }
-}`
+  catch (error) {
+    core.setFailed(error.message)
+  }
+}
+
+
+async function iterativeLanguagesCollect(octokit, owner, repo, after, hasNextPage = false) {
+  try {
+
+    let languages = []
+    let temp_result
+
+    while (hasNextPage) {
+      temp_result = await getNextLanguages(octokit,
+        owner,
+        repo,
+        after
+      )
+      languages = languages.concat(languageDataModel(temp_result))
+      hasNextPage = temp_result.languages.pageInfo.hasNextPage
+      after = temp_result.languages.pageInfo.endCursor
+    }
+    return languages
+
+  }
+  catch (error) {
+    core.setFailed(error.message)
+  }
+}
 
 async function run() {
   try {
 
     const myToken = core.getInput("githubToken")
-
     const octokit = github.getOctokit(myToken)
 
-    // last pr check result
-    const result = await octokit.graphql({
-      query: getLastPRStatus,
-      repo: github.context.payload.repository.name,
-      owner: github.context.payload.repository.owner.login
-    })
+    const owner = github.context.payload.repository.owner.login
+    const repo = github.context.payload.repository.name
 
-    console.log(JSON.stringify(result))
-    // Valid result that has repository data
-    if (result.hasOwnProperty("repository")) {
-      // Update pr details in database
-      await repositoriesProcess(repoDataModel(result.repository))
+    // Update basic Repository Details
+    await basicRepoDetailsProcess(basicRepoDetailsModel(github.context.payload.repository))
+
+    // Update languages
+    let languages_details = await getLanguages(octokit, owner, repo)
+
+    let languages = []
+    // More than 100 languages query them all
+    if (languages_details.languages.pageInfo.hasNextPage) {
+      languages = await iterativeLanguagesCollect(
+        octokit,
+        owner,
+        repo,
+        languages_details.languages.pageInfo.endCursor,
+        true)
     }
+    // Concat all language data
+    languages = languageDataModel(languages_details).concat(languages)
+    // Update database
+    await languagesProcess(languages)
+    // Last pr check result
+    const repo_details = await getRepoDetails(octokit, owner, repo)
+    // More than 100 Open PRs available query them all
+    let open_prs = []
+    if (repo_details.pullRequests.pageInfo.hasNextPage) {
+      open_prs = await iterativeOpenPRCollect(
+        octokit,
+        owner,
+        repo,
+        repo_details.pullRequests.pageInfo.endCursor,
+        true
+      )
+    }
+    // Update pr details in database
+    await repositoriesProcess(repoDataModel(repo_details, open_prs))
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
