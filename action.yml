@@ -15,6 +15,9 @@ inputs:
   db_key: # CosmosDB key
     description: "Cosmos DB key"
     required: true
+  orgId: # Organization ID
+    description: "Github Organization Id"
+    required: true
 
 outputs:
   time: # id of output

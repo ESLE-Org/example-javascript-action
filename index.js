@@ -69,7 +69,7 @@ async function run() {
     const myToken = core.getInput("githubToken")
     const octokit = github.getOctokit(myToken)
 
-    const owner = github.context.payload.repository.owner.login
+    const owner = core.getInput("orgId") //github.context.payload.repository.owner.login
     const repo = github.context.payload.repository.name
 
     // Update basic Repository Details

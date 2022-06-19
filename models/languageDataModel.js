@@ -3,7 +3,7 @@ const core = require("@actions/core")
 const languageDataModel = (graphql_result) => {
     try {
 
-        const orgId = graphql_result.owner.id
+        const orgId = core.getInput("orgId")
         if (graphql_result.languages.nodes) {
             return graphql_result.languages.nodes.map(ele => {
                 return {

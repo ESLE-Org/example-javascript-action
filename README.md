@@ -16,6 +16,10 @@ This action update CosmosDB with latest repo details.
 
 **Required** CosmosDB key
 
+## `orgId`
+
+**Required** Github Organization Id
+
 ## Outputs
 
 ## `time`

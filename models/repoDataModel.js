@@ -8,6 +8,8 @@ const core = require("@actions/core")
  */
 const repoDataModel = (graphql_result, open_prs = []) => {
 
+    const orgId = core.getInput("orgId")
+
     try {
 
         const blob = {
@@ -15,7 +17,7 @@ const repoDataModel = (graphql_result, open_prs = []) => {
             dbUpdatedAt: (new Date()).toISOString(),
             monitorStatus: 1,
             languages: [],
-            orgId: graphql_result.owner.id,
+            orgId: orgId,
             repoName: graphql_result.name,
             repoUrl: graphql_result.url,
             updateAt: graphql_result.updateAt,
