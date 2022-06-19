@@ -26203,22 +26203,22 @@ const getRepoDetailsQuery = `query($owner:String!, $repo:String!){
 const getOpenPRStatusQuery = `query($owner: String!, $repo: String!, $after: String!){
   repository(owner: $owner, name: $repo) {
     pullRequests(first: 100, states: OPEN, after: $after){
-            pageInfo {
+      pageInfo {
         endCursor
         hasNextPage
       }
-            edges {
-                node {
+      edges {
+        node {
           number
           url
           commits(last: 1) {
-                    nodes {
-                      commit {
+            nodes {
+              commit {
                 commitUrl
                 oid
-                          status {
+                status {
                   state
-                          contexts {
+                  contexts {
                     context
                     state
                     targetUrl
@@ -26233,7 +26233,6 @@ const getOpenPRStatusQuery = `query($owner: String!, $repo: String!, $after: Str
       }
     }
   }
-    
 }`
 
 async function getRepoDetails(octokit, owner, repo) {
