@@ -28,18 +28,18 @@ The time process end.
 
 ## Example usage
 ```
-  name: Security Status Monitoring
+name: Security Status Monitoring
 
-  # Controls when the workflow will run
-  on:
-    # Trigger after workflow run
-    workflow_run : 
-      # workflow that need to be complete
-      workflows : []
-      # After above workflow completed run this workflow 
-      types : [ completed]
-    # Allows you to run this workflow manually from the Actions tab
-    workflow_dispatch:
+# Controls when the workflow will run
+on:
+  # Trigger after workflow run
+  workflow_run : 
+    # workflow that need to be complete
+    workflows : []
+    # After above workflow completed run this workflow 
+    types : [ completed]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
