@@ -18,7 +18,7 @@ inputs:
 
 outputs:
   time: # id of output
-    description: "The time we greeted you"
+    description: "The time process end"
 runs:
   using: "node16"
   main: "dist/index.js"

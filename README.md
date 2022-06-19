@@ -20,7 +20,7 @@ This action update CosmosDB with latest repo details.
 
 ## `time`
 
-The time we greeted you.
+The time process end.
 
 ## Example usage
 
