@@ -109,7 +109,7 @@ async function run() {
     // Update pr details in database
     await repositoriesProcess(repoDataModel(repo_details, open_prs))
     // Create tag if not exists
-    await tagProcess(owner)
+    await tagProcess(repo_details.owner.id)
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
 
