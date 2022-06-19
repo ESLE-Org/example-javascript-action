@@ -1,6 +1,10 @@
-# Example javascript action
+# Security Status Monitoring Action
 
 This action update CosmosDB with latest repo details.
+
+## Prerequisite
+  - You need to have [Security Status Monitoring App](https://github.com/ESLE-Org/security-status-monitoring-tool) setup in order to view the results.
+  - You can find [Demo Dashboard](https://security-monitor-app-using-github-actions.azurewebsites.net/) here
 
 ## Inputs
 
@@ -10,7 +14,7 @@ This action update CosmosDB with latest repo details.
 
 ## `db_endpoint`
 
-**Required** CosmosDb endpoint url
+**Required** CosmosDB endpoint url
 
 ## `db_key`
 
@@ -23,9 +27,10 @@ This action update CosmosDB with latest repo details.
 The time process end.
 
 ## Example usage
-
-uses: actions/example-javascript-action@v0.5
-with:
-  githubToken: ${{secrets.GITHUB_TOKEN}}
-  db_endpoint: ${{secrets.DB_ENDPOINT}}
-  db_key: ${{sectets.DB_KEY}}
+```
+  uses: actions/security-status-monitoring-action@v1.0.0
+  with:
+    githubToken: ${{secrets.GITHUB_TOKEN}}
+    db_endpoint: ${{secrets.DB_ENDPOINT}}
+    db_key: ${{sectets.DB_KEY}}
+```

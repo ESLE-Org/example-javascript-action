@@ -1,5 +1,5 @@
-name: "Example JavaScript github action"
-description: "Write workflow status to database"
+name: "Security Status Monitoring Action"
+description: "This action update CosmosDB with latest repo details."
 branding:
   icon: "alert-circle"
   color: "blue"
