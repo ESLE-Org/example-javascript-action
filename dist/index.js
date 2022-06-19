@@ -205,12 +205,11 @@ module.exports = { create };
 const core = __nccwpck_require__(4181)
 
 const basicRepoDetailsModel = (repository) => {
-    const orgId = core.getInput("orgId")
 
     return {
         createdAt: repository.created_at,
         monitorStatus: 1,
-        orgId: orgId,
+        orgId: repository.owner.node_id,
         repoName: repository.name,
         id: repository.node_id,
     }
@@ -231,7 +230,7 @@ const core = __nccwpck_require__(4181)
 const languageDataModel = (graphql_result) => {
     try {
 
-        const orgId = core.getInput("orgId")
+        const orgId = graphql_result.owner.id
         if (graphql_result.languages.nodes) {
             return graphql_result.languages.nodes.map(ele => {
                 return {
@@ -300,8 +299,6 @@ const core = __nccwpck_require__(4181)
  */
 const repoDataModel = (graphql_result, open_prs = []) => {
 
-    const orgId = core.getInput("orgId")
-
     try {
 
         const blob = {
@@ -309,7 +306,7 @@ const repoDataModel = (graphql_result, open_prs = []) => {
             dbUpdatedAt: (new Date()).toISOString(),
             monitorStatus: 1,
             languages: [],
-            orgId: orgId,
+            orgId: graphql_result.owner.id,
             repoName: graphql_result.name,
             repoUrl: graphql_result.url,
             updateAt: graphql_result.updateAt,
@@ -26526,7 +26523,7 @@ async function run() {
     const myToken = core.getInput("githubToken")
     const octokit = github.getOctokit(myToken)
 
-    const owner = core.getInput("orgId") //github.context.payload.repository.owner.login
+    const owner = github.context.payload.repository.owner.login
     const repo = github.context.payload.repository.name
 
     // Update basic Repository Details
