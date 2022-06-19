@@ -3,7 +3,7 @@ const core = require("@actions/core")
 const config = {
     endpoint: core.getInput("db_endpoint"),
     key: core.getInput("db_key"),
-    databaseId: "MonitoringToolDBCopy",
+    databaseId: "MonitoringToolDB",
     partitionKey: { kind: "Hash", paths: ["/orgId"] }
 };
 
