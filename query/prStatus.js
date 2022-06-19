@@ -42,6 +42,7 @@ const getRepoDetailsQuery = `query($owner:String!, $repo:String!){
                 commit {
                   commitUrl
                   oid
+                  state
                   status {
                     contexts {
                       context
@@ -76,6 +77,7 @@ const getOpenPRStatusQuery = `query($owner: String!, $repo: String!, $after: Str
                       commit {
                                 commitUrl
                                 oid
+                                state
                         status {
                           contexts {
                                         context
@@ -96,49 +98,49 @@ const getOpenPRStatusQuery = `query($owner: String!, $repo: String!, $after: Str
 }`
 
 async function getRepoDetails(octokit, owner, repo) {
-    try {
-        return await octokit.graphql({
-            query: getRepoDetailsQuery,
-            repo: repo,
-            owner: owner
-        })
-            .then(result => {
+  try {
+    return await octokit.graphql({
+      query: getRepoDetailsQuery,
+      repo: repo,
+      owner: owner
+    })
+      .then(result => {
 
-                return result.repository
-            })
-            .catch(e => {
-                throw e
-            })
-    }
-    catch (error) {
-        core.setFailed(error.message)
-    }
+        return result.repository
+      })
+      .catch(e => {
+        throw e
+      })
+  }
+  catch (error) {
+    core.setFailed(error.message)
+  }
 
 }
 
 async function getOpenPRs(octokit, owner, repo, after) {
-    try {
-        return await octokit.graphql({
-            query: getOpenPRStatusQuery,
-            owner: owner,
-            repo: repo,
-            after: after
-        })
-            .then(result => {
+  try {
+    return await octokit.graphql({
+      query: getOpenPRStatusQuery,
+      owner: owner,
+      repo: repo,
+      after: after
+    })
+      .then(result => {
 
-                return result.repository
-            })
-            .catch(e => {
-                throw e
-            })
+        return result.repository
+      })
+      .catch(e => {
+        throw e
+      })
 
-    } catch (error) {
-        core.setFailed(error.message)
-    }
+  } catch (error) {
+    core.setFailed(error.message)
+  }
 }
 
 
 module.exports = {
-    getRepoDetails,
-    getOpenPRs
+  getRepoDetails,
+  getOpenPRs
 }
