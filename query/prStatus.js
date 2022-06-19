@@ -42,8 +42,8 @@ const getRepoDetailsQuery = `query($owner:String!, $repo:String!){
                 commit {
                   commitUrl
                   oid
-                  state
                   status {
+                    state
                     contexts {
                       context
                       state
@@ -62,38 +62,38 @@ const getRepoDetailsQuery = `query($owner:String!, $repo:String!){
 
 
 const getOpenPRStatusQuery = `query($owner: String!, $repo: String!, $after: String!){
-    repository(owner: $owner, name: $repo) {
-        pullRequests(first: 100, states: OPEN, after: $after){
+  repository(owner: $owner, name: $repo) {
+    pullRequests(first: 100, states: OPEN, after: $after){
             pageInfo {
-                endCursor
-                hasNextPage
-            }
+        endCursor
+        hasNextPage
+      }
             edges {
                 node {
-                    number
-                    url
-                    commits(last: 1) {
+          number
+          url
+          commits(last: 1) {
                     nodes {
                       commit {
-                                commitUrl
-                                oid
-                                state
-                        status {
+                commitUrl
+                oid
+                          status {
+                  state
                           contexts {
-                                        context
-                                        state
-                                        targetUrl
-                                        description
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    context
+                    state
+                    targetUrl
+                    description
+                  }
                 }
-
+              }
             }
+          }
         }
+
+      }
     }
+  }
     
 }`
 
