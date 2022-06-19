@@ -9,11 +9,11 @@ inputs:
   githubToken: # Github Token
     description: "Github token"
     required: true
-  db_endpoint: # CosmosDB endpoint url
-    description: "CosmosDB endpoint url"
+  db_endpoint: # CosmosDB Base URL
+    description: "CosmosDB Base URL"
     required: true
-  db_key: # CosmosDB key
-    description: "Cosmos DB key"
+  db_key: # CosmosDB Primary Key
+    description: "Cosmos DB Primary Key"
     required: true
 
 outputs:
