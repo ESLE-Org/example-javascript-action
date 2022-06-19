@@ -9,7 +9,7 @@ const core = __nccwpck_require__(4181)
 const config = {
     endpoint: core.getInput("db_endpoint"),
     key: core.getInput("db_key"),
-    databaseId: "MonitoringToolDBCopy",
+    databaseId: "MonitoringToolDB",
     partitionKey: { kind: "Hash", paths: ["/orgId"] }
 };
 
