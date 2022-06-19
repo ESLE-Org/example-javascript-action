@@ -14,11 +14,11 @@ This action update CosmosDB with latest repo details.
 
 ## `db_endpoint`
 
-**Required** CosmosDB endpoint url
+**Required** CosmosDB Base URL
 
 ## `db_key`
 
-**Required** CosmosDB key
+**Required** CosmosDB Primary Key
 
 ## Outputs
 
@@ -28,9 +28,33 @@ The time process end.
 
 ## Example usage
 ```
-  uses: ESLE-Org/security-status-monitoring-action@v1.0.0
-  with:
-    githubToken: ${{secrets.GITHUB_TOKEN}}
-    db_endpoint: ${{secrets.DB_ENDPOINT}}
-    db_key: ${{sectets.DB_KEY}}
+  name: Security Status Monitoring
+
+  # Controls when the workflow will run
+  on:
+    # Trigger after workflow run
+    workflow_run : 
+      # workflow that need to be complete
+      workflows : []
+      # After above workflow completed run this workflow 
+      types : [ completed]
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  Sync_db:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: ESLE-Org/security-status-monitoring-action@v1.0.0
+        with:
+          # Github token
+          githubToken: ${{secrets.GITHUB_TOKEN}}
+          # CosmosDB Base URL
+          db_endpoint: ${{secrets.COSMOS_DB_BASE_URL}}
+          # CosmosDB Primary Key
+          db_key: ${{secrets.COSMOS_DB_PRIMARY_KEY}}
 ```
