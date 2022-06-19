@@ -28,7 +28,7 @@ The time process end.
 
 ## Example usage
 ```
-  uses: actions/security-status-monitoring-action@v1.0.0
+  uses: ESLE-Org/security-status-monitoring-action@v1.0.0
   with:
     githubToken: ${{secrets.GITHUB_TOKEN}}
     db_endpoint: ${{secrets.DB_ENDPOINT}}

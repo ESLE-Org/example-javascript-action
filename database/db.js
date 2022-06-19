@@ -135,8 +135,41 @@ async function repositoriesProcess(repositoriesData) {
 }
 
 
+async function tagProcess(orgId) {
+    try {
+        const container = await itemManager("Tags")
+        const querySpec = {
+            query: "SELECT * FROM Tags t WHERE  t.orgId = @orgId",
+            parameters: [
+                {
+                    name: "@orgId",
+                    value: orgId
+                }
+            ]
+        };
+
+        // read all items in the Items container
+        const { resources: results } = await container.items
+            .query(querySpec)
+            .fetchAll();
+        if (results.length === 0) {
+
+            await container.items.create({
+                "tag": "Not Specified",
+                "orgId": orgId,
+                "id": "Not Specified"
+            })
+        }
+    }
+    catch (error) {
+        core.setFailed("tagProcess :: " + error.message)
+    }
+}
+
+
 module.exports = {
     basicRepoDetailsProcess,
     languagesProcess,
     repositoriesProcess,
+    tagProcess
 }

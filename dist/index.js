@@ -157,10 +157,43 @@ async function repositoriesProcess(repositoriesData) {
 }
 
 
+async function tagProcess(orgId) {
+    try {
+        const container = await itemManager("Tags")
+        const querySpec = {
+            query: "SELECT * FROM Tags t WHERE  t.orgId = @orgId",
+            parameters: [
+                {
+                    name: "@orgId",
+                    value: orgId
+                }
+            ]
+        };
+
+        // read all items in the Items container
+        const { resources: results } = await container.items
+            .query(querySpec)
+            .fetchAll();
+        if (results.length === 0) {
+
+            await container.items.create({
+                "tag": "Not Specified",
+                "orgId": orgId,
+                "id": "Not Specified"
+            })
+        }
+    }
+    catch (error) {
+        core.setFailed("tagProcess :: " + error.message)
+    }
+}
+
+
 module.exports = {
     basicRepoDetailsProcess,
     languagesProcess,
     repositoriesProcess,
+    tagProcess
 }
 
 /***/ }),
@@ -26462,7 +26495,8 @@ const { basicRepoDetailsModel } = __nccwpck_require__(2916)
 
 const { repositoriesProcess,
   languagesProcess,
-  basicRepoDetailsProcess } = __nccwpck_require__(7054)
+  basicRepoDetailsProcess,
+  tagProcess } = __nccwpck_require__(7054)
 
 const { getRepoDetails, getOpenPRs } = __nccwpck_require__(339)
 const { getLanguages, getNextLanguages } = __nccwpck_require__(5894)
@@ -26561,7 +26595,8 @@ async function run() {
     }
     // Update pr details in database
     await repositoriesProcess(repoDataModel(repo_details, open_prs))
-
+    // Create tag if not exists
+    await tagProcess(owner)
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
 
