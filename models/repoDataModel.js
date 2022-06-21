@@ -18,7 +18,7 @@ const repoDataModel = (graphql_result, open_prs = []) => {
             orgId: graphql_result.owner.id,
             repoName: graphql_result.name,
             repoUrl: graphql_result.url,
-            updateAt: graphql_result.updateAt,
+            updatedAt: graphql_result.updateAt,
             id: graphql_result.id,
             openPRs: []
 
