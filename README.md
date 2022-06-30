@@ -3,8 +3,8 @@
 This action update CosmosDB with latest repo details.
 
 ## Prerequisite
-  - You need to have [Security Status Monitoring App](https://github.com/ESLE-Org/security-status-monitoring-app-using-github-actions) setup in order to view the results.
-  - You can find [Demo Dashboard](https://security-monitor-app-using-github-actions.azurewebsites.net/) here
+  - You need to have [Security Status Monitoring App](https://github.com/ESLE-Org/security-status-monitoring-app) setup in order to view the results.
+  - You can find [Demo Dashboard](https://security-monitor-app.azurewebsites.net/) here
 
 ## Inputs
 
